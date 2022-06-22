@@ -114,7 +114,7 @@ main( int argc, char* argv[] )
         return EXIT_FAILURE;
     }
 
-    int  socketOption = 1;
+    int     socketOption = 1;
 
     setsockopt( serverSocket, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &socketOption, sizeof(socketOption) );
     fcntl( serverSocket, F_SETFL, O_NONBLOCK );
@@ -129,7 +129,8 @@ main( int argc, char* argv[] )
     listen( serverSocket, 1 );
     cout << TTY_DEVICE_ << " ready " << SERVER_IP_ << ":" << SERVER_PORT_ << endl;
 
-    int  clientSocket = -1;
+    int     clientSocket = -1;
+    bool    shouldDetectUtf16 = false;
 
     while ( true )
     {
@@ -143,11 +144,23 @@ main( int argc, char* argv[] )
 
         for ( auto& line : ttyRead(ttyFd) )
         {
-            static wstring_convert<codecvt_utf8_utf16<char16_t>, char16_t>  cv;
-
-            if ( !line.empty() && line.find_first_not_of(HEX_CHAR_) == string::npos )
+            if ( line == "RING" )
             {
-                u16string   s16;
+                write( ttyFd, "ATH\n", 4 );
+            }
+            else if ( !shouldDetectUtf16 && line.find("+CMGL:") == 0 )
+            {
+                shouldDetectUtf16 = true;
+            }
+            else if ( shouldDetectUtf16 && line.find("OK") == 0 )
+            {
+                shouldDetectUtf16 = false;
+            }
+
+            if ( shouldDetectUtf16 && !line.empty() && line.find_first_not_of(HEX_CHAR_) == string::npos )
+            {
+                static wstring_convert<codecvt_utf8_utf16<char16_t>, char16_t>  cv;
+                u16string                                                       s16;
 
                 for ( int i = 0; i < line.size(); i += 4 )
                 {
@@ -155,11 +168,6 @@ main( int argc, char* argv[] )
                 }
 
                 line = cv.to_bytes( s16 );
-            }
-
-            if ( line == "RING" )
-            {
-                write( ttyFd, "ATH\n", 4 );
             }
 
             line += '\n';
@@ -231,6 +239,5 @@ main( int argc, char* argv[] )
 
     close( serverSocket );
     close( ttyFd );
-
     return EXIT_SUCCESS;
 }

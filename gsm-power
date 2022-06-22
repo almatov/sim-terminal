@@ -1,0 +1,10 @@
+#!/bin/sh
+#
+# gsm-power
+#
+# Power on GSM module
+#
+
+/usr/local/bin/gpio write 16 1
+sleep 1.1
+/usr/local/bin/gpio write 16 0

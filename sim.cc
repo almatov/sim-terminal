@@ -2,7 +2,7 @@
 ****************************************************************************************************************
 ****************************************************************************************************************
 
-    Copyright (C) 2020, 2021 Askar Almatov
+    Copyright (C) 2020, 2021, 2022, 2023 Askar Almatov
 
     This program is free software: you can redistribute it and/or modify it under the terms of the GNU General
     Public License as published by the Free Software Foundation, either version 3 of the License, or (at your
@@ -82,6 +82,59 @@ ttyRead( int ttyFd )
 }
 
 /**************************************************************************************************************/
+string
+convertHex16( const string& line )
+{
+    string              result;
+    string::size_type   tokenStart = 0;
+    string::size_type   lookupStart = 0;
+
+    while ( true )
+    {
+        string::size_type   tokenEnd = line.find( '\"', lookupStart );
+
+        if ( tokenEnd != string::npos && (tokenStart == 0 || line.at(tokenStart) == '\"') )
+        {
+            ++tokenEnd;
+        }
+
+        string  token( line, tokenStart, tokenEnd - tokenStart );
+
+        if ( token.empty() || (token.size() & 3) != 0 || token.find_first_not_of(HEX_CHAR_) != string::npos )
+        {
+            result.append( token );
+        }
+        else
+        {
+            u16string   s16;
+
+            for ( int i = 0; i < token.size(); i += 4 )
+            {
+                s16.append( 1, stoi(token.substr(i,4), nullptr, 16) );
+            }
+
+            static wstring_convert<codecvt_utf8_utf16<char16_t>, char16_t>  cv;
+
+            result.append( cv.to_bytes(s16) );
+        }
+
+        if ( tokenEnd == string::npos )
+        {
+            break;
+        }
+
+        tokenStart = lookupStart = tokenEnd;
+
+        if ( tokenStart < line.size() && line.at(tokenStart) == '\"' )
+        {
+            ++lookupStart;
+        }
+    }
+
+   return move( result );
+}
+
+/**************************************************************************************************************/
 int
 main( int argc, char* argv[] )
 {
@@ -130,7 +183,6 @@ main( int argc, char* argv[] )
     cout << TTY_DEVICE_ << " ready " << SERVER_IP_ << ":" << SERVER_PORT_ << endl;
 
     int     clientSocket = -1;
-    bool    shouldDetectUtf16 = false;
 
     while ( true )
     {
@@ -144,30 +196,24 @@ main( int argc, char* argv[] )
 
         for ( auto& line : ttyRead(ttyFd) )
         {
+            static bool     isSms = false;
+
             if ( line == "RING" )
             {
                 write( ttyFd, "ATH\n", 4 );
             }
-            else if ( !shouldDetectUtf16 && line.find("+CMGL:") == 0 )
+            else if ( !isSms && line.find("+CMGL:") == 0 )
             {
-                shouldDetectUtf16 = true;
+                isSms = true;
             }
-            else if ( shouldDetectUtf16 && line.find("OK") == 0 )
+            else if ( isSms && line == "OK" )
             {
-                shouldDetectUtf16 = false;
+                isSms = false;
             }
 
-            if ( shouldDetectUtf16 && !line.empty() && line.find_first_not_of(HEX_CHAR_) == string::npos )
+            if ( isSms || line.find("+CUSD:") == 0 )
             {
-                static wstring_convert<codecvt_utf8_utf16<char16_t>, char16_t>  cv;
-                u16string                                                       s16;
-
-                for ( int i = 0; i < line.size(); i += 4 )
-                {
-                    s16.append( 1, stoi(line.substr(i,4), nullptr, 16) );
-                }
-
-                line = cv.to_bytes( s16 );
+                line = convertHex16( line );
             }
 
             line += '\n';

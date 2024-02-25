@@ -2,7 +2,7 @@
 ****************************************************************************************************************
 ****************************************************************************************************************
 
-    Copyright (C) 2020, 2021, 2022, 2023 Askar Almatov
+    Copyright (C) 2020, 2021, 2022, 2023, 2024 Askar Almatov
 
     This program is free software: you can redistribute it and/or modify it under the terms of the GNU General
     Public License as published by the Free Software Foundation, either version 3 of the License, or (at your
@@ -34,7 +34,7 @@ using namespace std;
 
 constexpr const char*       SERVER_IP_          = "127.0.0.1";
 constexpr const unsigned    SERVER_PORT_        = 51173;
-constexpr const char*       TTY_DEVICE_         = "/dev/ttyS2";
+constexpr const char*       TTY_DEVICE_         = "/dev/ttyS3";
 constexpr const char*       TTY_LINE_DELIMITER_ = "\r\n";
 constexpr const char*       HEX_CHAR_           = "0123456789ABCDEF";
 
@@ -82,8 +82,8 @@ ttyRead( int ttyFd )
 }
 
 /**************************************************************************************************************/
-string
-convertHex16( const string& line )
+void
+tryConvert( string& line )
 {
     string              result;
     string::size_type   tokenStart = 0;
@@ -93,7 +93,7 @@ convertHex16( const string& line )
     {
         string::size_type   tokenEnd = line.find( '\"', lookupStart );
 
-        if ( tokenEnd != string::npos && (tokenStart == 0 || line.at(tokenStart) == '\"') )
+        if ( string::npos != tokenEnd && (0 == tokenStart || '\"' == line.at(tokenStart)) )
         {
             ++tokenEnd;
         }
@@ -106,32 +106,31 @@ convertHex16( const string& line )
         }
         else
         {
-            u16string   s16;
+            static wstring_convert<codecvt_utf8_utf16<char16_t>, char16_t>  cv;
+            u16string                                                       s16;
 
             for ( int i = 0; i < token.size(); i += 4 )
             {
                 s16.append( 1, stoi(token.substr(i,4), nullptr, 16) );
             }
 
-            static wstring_convert<codecvt_utf8_utf16<char16_t>, char16_t>  cv;
-
             result.append( cv.to_bytes(s16) );
         }
 
-        if ( tokenEnd == string::npos )
+        if ( string::npos == tokenEnd )
         {
             break;
         }
 
         tokenStart = lookupStart = tokenEnd;
 
-        if ( tokenStart < line.size() && line.at(tokenStart) == '\"' )
+        if ( tokenStart < line.size() && '\"' == line.at(tokenStart) )
         {
             ++lookupStart;
         }
     }
 
-   return move( result );
+    line = move( result );
 }
 
 /**************************************************************************************************************/
@@ -143,6 +142,7 @@ main( int argc, char* argv[] )
 
     if ( ttyFd < 0 || tcgetattr(ttyFd, &term) < 0 )
     {
+        cerr << "cannot open " << TTY_DEVICE_ << " device\n";
         return EXIT_FAILURE;
     }
 
@@ -157,16 +157,11 @@ main( int argc, char* argv[] )
 
     if ( tcsetattr(ttyFd, TCSANOW, &term) < 0 )
     {
+        cerr << "cannot set attributes to " << TTY_DEVICE_ << " device\n";
         return EXIT_FAILURE;
     }
 
-    int  serverSocket = socket( PF_INET, SOCK_STREAM, IPPROTO_TCP );
-
-    if ( serverSocket < 0  )
-    {
-        return EXIT_FAILURE;
-    }
-
+    int     serverSocket = socket( PF_INET, SOCK_STREAM, IPPROTO_TCP );
     int     socketOption = 1;
 
     setsockopt( serverSocket, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &socketOption, sizeof(socketOption) );
@@ -178,7 +173,13 @@ main( int argc, char* argv[] )
     serverAddress.sin_family = AF_INET;
     serverAddress.sin_addr.s_addr = inet_addr( SERVER_IP_ );
     serverAddress.sin_port = htons( SERVER_PORT_ );
-    bind( serverSocket, reinterpret_cast<const struct sockaddr*>(&serverAddress), sizeof(serverAddress) );
+
+    if ( bind(serverSocket, reinterpret_cast<const struct sockaddr*>(&serverAddress), sizeof(serverAddress)) < 0 )
+    {
+        cerr << "cannot bind socket " << SERVER_IP_ << ":" << SERVER_PORT_ << "\n";
+        return EXIT_FAILURE;
+    }
+
     listen( serverSocket, 1 );
     cout << TTY_DEVICE_ << " ready " << SERVER_IP_ << ":" << SERVER_PORT_ << endl;
 
@@ -213,7 +214,7 @@ main( int argc, char* argv[] )
 
             if ( isSms || line.find("+CUSD:") == 0 )
             {
-                line = convertHex16( line );
+                tryConvert( line );
             }
 
             line += '\n';

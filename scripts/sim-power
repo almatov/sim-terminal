@@ -1,0 +1,24 @@
+#!/bin/sh
+#
+# sim-power
+#
+# SIM module power control
+#
+
+GPIO_CHIP=0   # /dev/gpiochip0
+GPIO_LINE=203 # Inverted PWRKEY - PG11 of NanoPi Duo2
+
+case $1 in
+  on)
+    gpioset -c $GPIO_CHIP -t 500ms,1000ms,0 $GPIO_LINE=0
+    ;;
+  off)
+    gpioset -c $GPIO_CHIP -t 10ms,2000ms,0 $GPIO_LINE=0
+    ;;
+  reset)
+    gpioset -c $GPIO_CHIP -t 10ms,2000ms,2000ms,1000ms,0 $GPIO_LINE=0
+    ;;
+  *)
+    echo "Usage: gsm-power <on|off|reset>\nRestart sim.service after reset"
+    ;;
+esac

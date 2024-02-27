@@ -27,10 +27,6 @@ Run this
 
 	make
 	sudo make install
-	sudo sim-power on
 	sudo systemctl start sim
-	sudo systemctl enable sim
-
-Edit /etc/rc.local to add
-
-	/usr/local/bin/sim-power on
+	tmux
+	sim-client

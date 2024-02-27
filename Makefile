@@ -5,7 +5,8 @@ sim:	sim.cc
 install:
 	strip sim
 	cp sim /usr/local/sbin
+	cp scripts/* /usr/local/bin
 	cp sim.service /etc/systemd/system
 	systemctl daemon-reload
-	cp scripts/* /usr/local/bin
+	systemctl enable sim
 

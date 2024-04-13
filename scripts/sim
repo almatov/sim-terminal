@@ -1,0 +1,11 @@
+#!/bin/sh
+#
+# sim
+#
+# Connect to SIM terminal
+#
+
+SERVER_IP=127.0.0.1
+SERVER_PORT=51173
+
+nc.traditional -v $SERVER_IP $SERVER_PORT

@@ -6,7 +6,7 @@
 #
 
 GPIO_CHIP=0   # /dev/gpiochip0
-GPIO_LINE=203 # Inverted PWRKEY - PG11 of NanoPi Duo2
+GPIO_LINE=203 # Inverted PWRKEY - PG11 of the NanoPi Duo2
 
 case $1 in
   on)

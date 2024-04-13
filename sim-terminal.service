@@ -1,5 +1,5 @@
 [Unit]
-Description=SIM service
+Description=SIM terminal service
 After=network.target
 StartLimitIntervalSec=0
 
@@ -9,7 +9,7 @@ Restart=always
 RestartSec=1
 User=root
 ExecStartPre=/usr/local/bin/sim-power reset
-ExecStart=/usr/bin/stdbuf -oL /usr/local/sbin/sim
+ExecStart=/usr/bin/stdbuf -oL /usr/local/sbin/sim-terminal
 
 [Install]
 WantedBy=multi-user.target

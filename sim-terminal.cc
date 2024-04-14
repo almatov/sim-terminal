@@ -24,6 +24,7 @@
 #include <string>
 #include <vector>
 #include <fcntl.h>
+#include <gpiod.h>
 #include <termios.h>
 #include <unistd.h>
 #include <arpa/inet.h>
@@ -37,6 +38,57 @@ constexpr const unsigned    SERVER_PORT_        = 51173;
 constexpr const char*       TTY_DEVICE_         = "/dev/ttyS3";
 constexpr const char*       TTY_LINE_DELIMITER_ = "\r\n";
 constexpr const char*       HEX_CHAR_           = "0123456789ABCDEF";
+constexpr const char*       GPIO_DEVICE_        = "/dev/gpiochip0";
+constexpr const int         GPIO_LINE_PWRKEY_   = 203;                  // PG11 of the NanoPi Duo2
+
+/**************************************************************************************************************/
+void
+powerReset()
+{
+    struct gpiod_chip*  chip = gpiod_chip_open( GPIO_DEVICE_ );
+
+    if ( chip == nullptr )
+    {
+        throw runtime_error( "cannot open GPIO device" );
+    }
+
+    extern char*                    program_invocation_short_name;
+    unsigned                        line = GPIO_LINE_PWRKEY_;
+    struct gpiod_line_settings*     settings = gpiod_line_settings_new();
+    struct gpiod_request_config*    reqConfig = gpiod_request_config_new();
+    struct gpiod_line_config*       lineConfig = gpiod_line_config_new();
+
+    gpiod_line_settings_set_direction( settings, GPIOD_LINE_DIRECTION_OUTPUT );
+    gpiod_line_config_add_line_settings( lineConfig, &line, 1, settings );
+    gpiod_request_config_set_consumer( reqConfig, program_invocation_short_name );
+
+    struct gpiod_line_request*      gpioRequest = gpiod_chip_request_lines( chip, reqConfig, lineConfig );
+
+    if ( gpioRequest == nullptr )
+    {
+        throw runtime_error( "failed to request GPIO lines" );
+    }
+
+    gpiod_request_config_free( reqConfig );
+    gpiod_line_config_free( lineConfig );
+    gpiod_line_settings_free( settings );
+    gpiod_chip_close( chip );
+
+    enum gpiod_line_value           lineValue = GPIOD_LINE_VALUE_ACTIVE;
+
+    gpiod_line_request_set_value( gpioRequest, line, lineValue );
+    usleep( 1600000 );
+    lineValue = ( lineValue == GPIOD_LINE_VALUE_ACTIVE )? GPIOD_LINE_VALUE_INACTIVE : GPIOD_LINE_VALUE_ACTIVE;
+    gpiod_line_request_set_value( gpioRequest, line, lineValue );
+    usleep( 1200000 );
+    lineValue = ( lineValue == GPIOD_LINE_VALUE_ACTIVE )? GPIOD_LINE_VALUE_INACTIVE : GPIOD_LINE_VALUE_ACTIVE;
+    gpiod_line_request_set_value( gpioRequest, line, lineValue );
+    usleep( 1200000 );
+    lineValue = ( lineValue == GPIOD_LINE_VALUE_ACTIVE )? GPIOD_LINE_VALUE_INACTIVE : GPIOD_LINE_VALUE_ACTIVE;
+    gpiod_line_request_set_value( gpioRequest, line, lineValue );
+    usleep( 1900000 );
+    gpiod_line_request_release( gpioRequest );
+}
 
 /**************************************************************************************************************/
 vector<string>
@@ -137,6 +189,8 @@ tryConvert( string& line )
 int
 main( int argc, char* argv[] )
 {
+    powerReset();
+
     struct termios  term;
     int             ttyFd = open( TTY_DEVICE_, O_RDWR | O_NOCTTY | O_NDELAY );
 

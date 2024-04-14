@@ -1,7 +1,7 @@
 CXXFLAGS+=-std=c++17
 LDLIBS = -lgpiod
 
-sim-terminal: sim-terminal.cc
+sim-terminal: sim-terminal.cc simcom.cc simcom.h
 
 install:
 	strip sim-terminal

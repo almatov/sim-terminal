@@ -5,4 +5,4 @@
 # Get history of incoming calls
 #
 
-journalctl -u sim | grep "+CLIP"
+journalctl -u sim-terminal | grep "+CLIP"

@@ -76,7 +76,7 @@ Simcom::Simcom
     gpiod_line_settings_free( settings );
     gpiod_chip_close( chip );
 
-    // Power reset
+    // power reset
     usleep( 50000 );
     lineValue = toggleValue( lineValue );
     gpiod_line_request_set_value( gpioRequest_, line, lineValue );
@@ -89,9 +89,9 @@ Simcom::Simcom
     usleep( 1200000 );
     lineValue = toggleValue( lineValue );
     gpiod_line_request_set_value( gpioRequest_, line, lineValue );
-    usleep( 1900000 );
+    sleep( 5 );
 
-    // Open UART TTY
+    // open UART TTY
     uartFd_ = open( uartDevice, O_RDWR | O_NOCTTY | O_NDELAY );
 
     struct termios  term;

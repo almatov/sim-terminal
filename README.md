@@ -4,13 +4,15 @@ This is a C++ written terminal program that uses SIM module with Linux. The prog
 
 The **RING** event should be hung up after getting an incoming call. This protects against phone scammers that attempt social engineering fraud, making it safe to use the SIM card binded to the bank or other services with 2FA.
 
+The **+CMTI** event will print the received SMS message and then delete it.
+
 The permanent connection to the online SIM card makes 2FA theft that uses fake IMEI, IMSI and phone numbers captured from your mobile device more difficult. These attacks often use to take accounts based on SMS 2FA. Do not use SMS 2FA if possible, and switch to TOTP 2FA instead.
 
 The program was compiled and tested under Armbian Linux for NanoPi Duo2 with NanoPi IoT-2G SIM800C dock but should work under any other Linux system with different Simcom's modules. Pay attention to the PWRKEY pin on the other board, as the IoT-2G board will have the inverted TTL connection of the PG11 pin to the PWRKEY. The GSM antenna included with the IoT-2G dock can interfere with the system, so it's best to use one with an SMA connector cable that can be kept away from the board.
 
 The SIM terminal service will write out the full log to the system journal for the unit **sim-terminal.**
 
-To connect to the terminal, you can use the **sim** console script. The predefined console commands are **kill** to stop the service, **quit** to detach client, **list** to print received SMS messages, **delete** to remove read SMS messages, **balance** to get phone balance and **send** to submit SMS message.
+To connect to the terminal, you can use the **sim** console script. The predefined console commands are **kill** to stop the service, **quit** to detach client, **balance** to get phone balance and **send** to submit SMS message.
 
 The **sim-calls** script will print out the incoming call history.
 
@@ -27,5 +29,5 @@ Run this
 	make
 	sudo make install
 	sudo systemctl start sim-terminal
-	tmux
 	sim
+	sudo journalctl -fu sim-terminal

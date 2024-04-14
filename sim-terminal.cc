@@ -116,6 +116,7 @@ main( int argc, char* argv[] )
 
     listen( serverSocket, 1 );
     cout << UART_DEVICE_ << " ready " << SERVER_IP_ << ":" << SERVER_PORT_ << endl;
+    sim.uartWrite( "AT+CMGF=1\n" );     // set text mode
 
     int     clientSocket = -1;
 
@@ -136,6 +137,10 @@ main( int argc, char* argv[] )
             if ( line == "RING" )
             {
                 sim.uartWrite( "ATH\n" );
+            }
+            else if ( line.find("+CMTI:") == 0 )
+            {
+                sim.uartWrite( "AT+CMGL=\"rec unread\"\nAT+CMGD=1,1\n" );
             }
             else if ( !isSms && line.find("+CMGL:") == 0 )
             {
@@ -187,15 +192,7 @@ main( int argc, char* argv[] )
 
             string  simCommand;
 
-            if ( clientCommand == "list" )
-            {
-                simCommand = "AT+CMGF=1\nAT+CMGL=\"all\"\n";
-            }
-            else if ( clientCommand == "delete" )
-            {
-                simCommand = "AT+CMGD=1,1\n";
-            }
-            else if ( clientCommand == "balance" )
+            if ( clientCommand == "balance" )
             {
                 simCommand = "AT+CUSD=1,\"*111#\"\n";
             }

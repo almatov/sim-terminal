@@ -28,11 +28,11 @@ using std::runtime_error;
 using std::string;
 using std::vector;
 
-constexpr const char*       UART_LINE_DELIMITER_ = "\r\n";
+constexpr const char*       LINE_DELIMITER_ = "\r\n";
 
 /**************************************************************************************************************/
-inline enum gpiod_line_value
-toggleValue( enum gpiod_line_value value )
+inline static enum gpiod_line_value
+toggleValue_( enum gpiod_line_value value )
 {
     return ( value == GPIOD_LINE_VALUE_ACTIVE )? GPIOD_LINE_VALUE_INACTIVE : GPIOD_LINE_VALUE_ACTIVE;
 }
@@ -78,16 +78,16 @@ Simcom::Simcom
 
     // power reset
     usleep( 50000 );
-    lineValue = toggleValue( lineValue );
+    lineValue = toggleValue_( lineValue );
     gpiod_line_request_set_value( gpioRequest_, line, lineValue );
     usleep( 1600000 );
-    lineValue = toggleValue( lineValue );
+    lineValue = toggleValue_( lineValue );
     gpiod_line_request_set_value( gpioRequest_, line, lineValue );
     usleep( 1200000 );
-    lineValue = toggleValue( lineValue );
+    lineValue = toggleValue_( lineValue );
     gpiod_line_request_set_value( gpioRequest_, line, lineValue );
     usleep( 1200000 );
-    lineValue = toggleValue( lineValue );
+    lineValue = toggleValue_( lineValue );
     gpiod_line_request_set_value( gpioRequest_, line, lineValue );
     sleep( 5 );
 
@@ -163,9 +163,9 @@ Simcom::uartRead()
 
         do
         {
-            lineEnd = response.find( UART_LINE_DELIMITER_, lineBegin );
+            lineEnd = response.find( LINE_DELIMITER_, lineBegin );
             result.push_back( response.substr(lineBegin, lineEnd-lineBegin) );
-            lineBegin = lineEnd + strlen( UART_LINE_DELIMITER_ );
+            lineBegin = lineEnd + strlen( LINE_DELIMITER_ );
         }
         while ( lineEnd < response.size() );
     }

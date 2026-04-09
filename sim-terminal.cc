@@ -116,7 +116,10 @@ main( int argc, char* argv[] )
 
     listen( serverSocket, 1 );
     cout << UART_DEVICE_ << " ready " << SERVER_IP_ << ":" << SERVER_PORT_ << endl;
-    sim.uartWrite( "AT+CMGF=1\n" );     // set text mode
+    sim.uartWrite( "AT+CMGF=1\n" );         // set text mode
+    usleep( 50000 );
+    sim.uartWrite( "AT+CNMI=2,2,0,0,0\n" ); // print SMS immediately
+    usleep( 50000 );
 
     int     clientSocket = -1;
 
@@ -130,28 +133,14 @@ main( int argc, char* argv[] )
             clientSocket = accept( serverSocket, reinterpret_cast<struct sockaddr*>(&clientAddress), &clientLength );
         }
 
-        for ( auto& line : sim.uartRead() )
+        for ( string& line : sim.uartRead() )
         {
-            static bool     isSms = false;
-
             if ( line == "RING" )
             {
                 sim.uartWrite( "ATH\n" );
             }
-            else if ( line.find("+CMTI:") == 0 )
-            {
-                sim.uartWrite( "AT+CMGL=\"rec unread\"\nAT+CMGD=1,1\n" );
-            }
-            else if ( !isSms && line.find("+CMGL:") == 0 )
-            {
-                isSms = true;
-            }
-            else if ( isSms && line == "OK" )
-            {
-                isSms = false;
-            }
 
-            if ( isSms || line.find("+CUSD:") == 0 )
+            if ( line.rfind("+C", 0) != 0 || line.rfind("+CUSD:", 0) == 0 )
             {
                 tryConvert( line );
             }

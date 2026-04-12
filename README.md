@@ -4,7 +4,9 @@ This is a C++ written terminal program that uses SIM module with Linux. The prog
 
 The **RING** event should be hung up after getting an incoming call. This protects against phone scammers that attempt social engineering fraud, making it safe to use the SIM card binded to the bank or other services with 2FA.
 
-The **+CMTI** event will print the received SMS message and then delete it.
+The **+CMT** event will print the received SMS message.
+
+The **+CUSD** event will print the USSD message.
 
 The permanent connection to the online SIM card makes 2FA theft that uses fake IMEI, IMSI and phone numbers captured from your mobile device more difficult. These attacks often use to take accounts based on SMS 2FA. Do not use SMS 2FA if possible, and switch to TOTP 2FA instead.
 
@@ -30,4 +32,4 @@ Run this
 	sudo make install
 	sudo systemctl start sim-terminal
 	sim
-	sudo journalctl -fu sim-terminal
+	journalctl -fu sim-terminal

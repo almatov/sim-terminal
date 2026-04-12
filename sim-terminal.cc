@@ -140,7 +140,7 @@ main( int argc, char* argv[] )
                 sim.uartWrite( "ATH\n" );
             }
 
-            if ( line.rfind("+C", 0) != 0 || line.rfind("+CUSD:", 0) == 0 )
+            if ( line.rfind("+CUSD:", 0) == 0 || !(line.rfind("AT", 0) == 0 || line.rfind("+C", 0) == 0) )
             {
                 tryConvert( line );
             }
@@ -159,7 +159,7 @@ main( int argc, char* argv[] )
         {
             string  clientCommand( readBuffer, nBytes - 1 );
 
-            if ( clientCommand.compare(0, 2, "AT") == 0 )
+            if ( clientCommand.rfind("AT", 0) == 0 )
             {
                 sim.uartWrite( clientCommand + '\n' );
                 continue;
@@ -185,7 +185,7 @@ main( int argc, char* argv[] )
             {
                 simCommand = "AT+CUSD=1,\"*111#\"\n";
             }
-            else if ( clientCommand.compare(0, 6, "send +") == 0 )
+            else if ( clientCommand.rfind("send ", 0) == 0 )
             {
                 string  number( clientCommand.erase(0, 5), 0, clientCommand.find_first_of(' ') );
                 string  body( clientCommand.erase(0, number.size()), clientCommand.find_first_not_of(' ') );

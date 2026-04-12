@@ -1,5 +1,5 @@
 [Unit]
-Description=SIM terminal service
+Description=SIM terminal
 After=network.target
 StartLimitIntervalSec=0
 

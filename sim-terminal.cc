@@ -2,7 +2,7 @@
 ****************************************************************************************************************
 ****************************************************************************************************************
 
-    Copyright (C) 2020, 2021, 2022, 2023, 2024 Askar Almatov
+    Copyright (C) 2020, 2021, 2022, 2023, 2024, 2026 Askar Almatov
 
     This program is free software: you can redistribute it and/or modify it under the terms of the GNU General
     Public License as published by the Free Software Foundation, either version 3 of the License, or (at your
@@ -30,17 +30,17 @@
 
 using namespace std;
 
+constexpr const char*       USSD_BALANCE        = "*111#";
 constexpr const char*       UART_DEVICE_        = "/dev/ttyS3";
 constexpr const char*       GPIO_DEVICE_        = "/dev/gpiochip0";
 constexpr const int         GPIO_PWRKEY_LINE_   = 203;                          // PG11 of the NanoPi Duo2
 constexpr const auto        GPIO_PWRKEY_VALUE_  = GPIOD_LINE_VALUE_INACTIVE;    // inverted PWRKEY control
 constexpr const char*       SERVER_IP_          = "127.0.0.1";
 constexpr const unsigned    SERVER_PORT_        = 51173;
-constexpr const char*       HEX_CHAR_           = "0123456789ABCDEF";
 
 /**************************************************************************************************************/
 void
-tryConvert( string& line )
+tryConvertPdu( string& line )
 {
     string              result;
     string::size_type   tokenStart = 0;
@@ -57,7 +57,7 @@ tryConvert( string& line )
 
         string  token( line, tokenStart, tokenEnd - tokenStart );
 
-        if ( token.empty() || (token.size() & 3) != 0 || token.find_first_not_of(HEX_CHAR_) != string::npos )
+        if ( token.empty() || (token.size() & 3) != 0 || token.find_first_not_of("0123456789ABCDEF") != string::npos )
         {
             result.append( token );
         }
@@ -142,7 +142,7 @@ main( int argc, char* argv[] )
 
             if ( line.rfind("+CUSD:", 0) == 0 || !(line.rfind("AT", 0) == 0 || line.rfind("+C", 0) == 0) )
             {
-                tryConvert( line );
+                tryConvertPdu( line );
             }
 
             line += '\n';
@@ -183,7 +183,7 @@ main( int argc, char* argv[] )
 
             if ( clientCommand == "balance" )
             {
-                simCommand = "AT+CUSD=1,\"*111#\"\n";
+                simCommand = "AT+CUSD=1,\"" + USSD_BALANCE + "\"\n";
             }
             else if ( clientCommand.rfind("send ", 0) == 0 )
             {
@@ -207,3 +207,4 @@ main( int argc, char* argv[] )
     close( serverSocket );
     return EXIT_SUCCESS;
 }
+

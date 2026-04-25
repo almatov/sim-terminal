@@ -1,8 +1,0 @@
-#!/bin/sh
-#
-# sim-calls
-#
-# Get history of incoming calls
-#
-
-journalctl -u sim-terminal | grep "+CLIP"

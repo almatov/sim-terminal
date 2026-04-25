@@ -14,22 +14,30 @@ The program was compiled and tested under Armbian Linux for NanoPi Duo2 with Nan
 
 The SIM terminal service will write out the full log to the system journal for the unit **sim-terminal.**
 
-To connect to the terminal, you can use the **sim** console script. The predefined console commands are **kill** to stop the service, **quit** to detach client, **balance** to get phone balance and **send** to submit SMS message.
+Use the **sim-shell** console script to connect to the terminal. You can use either **AT** commands or predefined console commands.
 
-The **sim-calls** script will print out the incoming call history.
+**Predefined Commands:**
+
+- **kill**: Stops the service.
+- **quit**: Disconnects the client.
+- **balance**: Retrieves the phone balance.
+- **send**: Submits an SMS message.
 
 ## How to install
 
 Software requirements:
 
-    g++-10.2+       (apt install build-essential)
-    nc.traditional	(apt install nc.traditional)
-    libgpiod-2.0+   (https://git.kernel.org/pub/scm/libs/libgpiod/libgpiod.git)
+    g++-10.2+       # apt install build-essential
+    nc.traditional  # apt install nc.traditional
+    libgpiod-2.0+   # https://git.kernel.org/pub/scm/libs/libgpiod/libgpiod.git
 
 Run this
 
 	make
 	sudo make install
+	sudo cp sim-terminal.service /etc/systemd/system
+	sudo systemctl daemon-reload
+	sudo systemctl enable sim-terminal
 	sudo systemctl start sim-terminal
-	sim
-	journalctl -fu sim-terminal
+	sim-shell                      # interactivity
+	journalctl -fu sim-terminal    # just see events

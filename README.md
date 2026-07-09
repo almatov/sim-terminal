@@ -29,15 +29,34 @@ Software requirements:
 
     g++-10.2+       # apt install build-essential
     nc.traditional  # apt install nc.traditional
-    libgpiod-2.0+   # https://git.kernel.org/pub/scm/libs/libgpiod/libgpiod.git
+    libgpiod-2.0+   # apt install libgpiod-dev
 
 Run this
 
 	make
 	sudo make install
-	sudo cp sim-terminal.service /etc/systemd/system
-	sudo systemctl daemon-reload
-	sudo systemctl enable sim-terminal
 	sudo systemctl start sim-terminal
 	sim-shell                      # interactivity
 	journalctl -fu sim-terminal    # just see events
+
+## Tips
+
+Run this script from your computer if you just wait the 2FA SMS
+
+    ssh <sim-host> 'journalctl -o short-iso -fu sim-terminal'
+
+Script to see incoming calls
+
+    ssh <sim-host> 'journalctl -o short-iso -u sim-terminal' | grep "+CLIP"
+
+Get IMEI via sim-shell
+
+    AT+SIMEI?
+
+Send SMS via sim-shell
+
+    send <number> <message>
+
+![NanoPi IoT-2G SIM800C](nanopi_iot.jpg)
+![NanoPi-power](nanopi_iot_power.jpg)
+

@@ -118,8 +118,11 @@ main( int argc, char* argv[] )
     cout << UART_DEVICE_ << " ready " << SERVER_IP_ << ":" << SERVER_PORT_ << endl;
     sim.uartWrite( "AT+CMGF=1\n" );         // set text mode
     usleep( 50000 );
-    sim.uartWrite( "AT+CNMI=2,2,0,0,0\n" ); // print SMS immediately
+    sim.uartWrite( "AT+CNMI=2,2,0,0,0\n" ); // set to print incoming SMS immediately
+    sleep( 5 );
+    sim.uartWrite( "AT+CMGL=\"ALL\"\n" );   // print all stored SMS
     usleep( 50000 );
+    sim.uartWrite( "AT+CMGD=1,4\n" );       // empty SMS storage
 
     int     clientSocket = -1;
 
@@ -183,14 +186,14 @@ main( int argc, char* argv[] )
 
             if ( clientCommand == "balance" )
             {
-                simCommand = "AT+CUSD=1,\"" + USSD_BALANCE + "\"\n";
+                simCommand = "AT+CUSD=1,\""s + USSD_BALANCE + "\"\n";
             }
             else if ( clientCommand.rfind("send ", 0) == 0 )
             {
                 string  number( clientCommand.erase(0, 5), 0, clientCommand.find_first_of(' ') );
                 string  body( clientCommand.erase(0, number.size()), clientCommand.find_first_not_of(' ') );
 
-                simCommand = "AT+CMGF=1\nAT+CMGS=\"" + number + "\"\n" + body + "\x1a\n";
+                simCommand = "AT+CMGF=1\nAT+CMGS=\""s + number + "\"\n" + body + "\x1a\n";
             }
             else
             {

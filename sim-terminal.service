@@ -1,12 +1,12 @@
 [Unit]
 Description=SIM terminal
-After=network.target
+After=network-online.target
 StartLimitIntervalSec=0
 
 [Service]
 Type=simple
 Restart=always
-RestartSec=1
+RestartSec=5
 User=root
 ExecStart=/usr/bin/stdbuf -oL /usr/local/sbin/sim-terminal
 

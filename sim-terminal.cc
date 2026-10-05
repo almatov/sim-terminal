@@ -91,6 +91,19 @@ tryConvertPdu( string& line )
 }
 
 /**************************************************************************************************************/
+void
+initModem( Simcom& sim )
+{
+    sim.uartWrite( "AT+CMGF=1\n" );         // set text mode
+    usleep( 50000 );
+    sim.uartWrite( "AT+CNMI=2,2,0,0,0\n" ); // set to print incoming SMS immediately
+    sleep( 5 );
+    sim.uartWrite( "AT+CMGL=\"ALL\"\n" );   // print all stored SMS
+    usleep( 50000 );
+    sim.uartWrite( "AT+CMGD=1,4\n" );       // empty SMS storage
+}
+
+/**************************************************************************************************************/
 int
 main( int argc, char* argv[] )
 {
@@ -116,13 +129,7 @@ main( int argc, char* argv[] )
 
     listen( serverSocket, 1 );
     cout << UART_DEVICE_ << " ready " << SERVER_IP_ << ":" << SERVER_PORT_ << endl;
-    sim.uartWrite( "AT+CMGF=1\n" );         // set text mode
-    usleep( 50000 );
-    sim.uartWrite( "AT+CNMI=2,2,0,0,0\n" ); // set to print incoming SMS immediately
-    sleep( 5 );
-    sim.uartWrite( "AT+CMGL=\"ALL\"\n" );   // print all stored SMS
-    usleep( 50000 );
-    sim.uartWrite( "AT+CMGD=1,4\n" );       // empty SMS storage
+    initModem( sim );
 
     int     clientSocket = -1;
 
@@ -141,6 +148,10 @@ main( int argc, char* argv[] )
             if ( line == "RING" )
             {
                 sim.uartWrite( "ATH\n" );
+            }
+            else if ( line == "SMS Ready" )
+            {
+                initModem( sim );                   // module has restarted and lost its settings
             }
 
             if ( line.rfind("+CUSD:", 0) == 0 || !(line.rfind("AT", 0) == 0 || line.rfind("+C", 0) == 0) )

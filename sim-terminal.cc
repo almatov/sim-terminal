@@ -129,7 +129,6 @@ main( int argc, char* argv[] )
 
     listen( serverSocket, 1 );
     cout << UART_DEVICE_ << " ready " << SERVER_IP_ << ":" << SERVER_PORT_ << endl;
-    initModem( sim );
 
     int     clientSocket = -1;
 
@@ -151,7 +150,7 @@ main( int argc, char* argv[] )
             }
             else if ( line == "SMS Ready" )
             {
-                initModem( sim );                   // module has restarted and lost its settings
+                initModem( sim );                   // module has started and has default settings
             }
 
             if ( line.rfind("+CUSD:", 0) == 0 || !(line.rfind("AT", 0) == 0 || line.rfind("+C", 0) == 0) )

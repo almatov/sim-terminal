@@ -20,7 +20,7 @@ Use the **sim-shell** console script to connect to the terminal. You can type ei
 
 - **kill**: stops the service.
 - **quit**: disconnects the client.
-- **balance**: requests the phone balance.
+- **balance**: requests the phone balance with the USSD code `*111#`. If your operator uses a different code, change `USSD_BALANCE` in `sim-terminal.cc` and rebuild the program (see below).
 - **send**: sends an SMS message.
 
 ## Power supply
@@ -42,6 +42,16 @@ Run the following commands:
 	sudo systemctl start sim-terminal
 	sim-shell                      # interactive console
 	journalctl -fu sim-terminal    # watch events only
+
+To use a different USSD code for **balance**, set it in `sim-terminal.cc`, for example:
+
+    constexpr const char*       USSD_BALANCE        = "*102#";
+
+Then rebuild and restart the service:
+
+	make
+	sudo make install
+	sudo systemctl restart sim-terminal
 
 Run these commands once in **sim-shell** to set a fixed baud rate and save it in the module:
 
@@ -65,6 +75,10 @@ A call that arrives while an SMS is being received is rejected by the network wi
 Get the IMEI in **sim-shell**:
 
     AT+SIMEI?
+
+Check the balance in **sim-shell** (the reply arrives as a **+CUSD** event):
+
+    balance
 
 Send an SMS in **sim-shell**:
 

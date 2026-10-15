@@ -25,7 +25,9 @@ Use the **sim-shell** console script to connect to the terminal. You can type ei
 
 ## Power supply
 
-The SIM800 draws current peaks of up to 2 A during GSM transmission. If the supply voltage drops below about 3.4 V, the module resets itself and loses its settings. Use a power supply that can deliver at least 2 A and add large electrolytic capacitors (1000 µF or more) close to the module's power input. You can find **UNDER-VOLTAGE** or **RDY** messages in the journal if the module resets.
+The SIM800 draws current peaks of up to 2 A during GSM transmission. If the supply voltage drops below about 3.4 V, the module resets itself and loses its settings. Use a power supply that can deliver at least 2 A and add large low-ESR capacitors (1000 µF or more) to the 5 V line. You can find **UNDER-VOLTAGE** or **RDY** messages in the journal if the module resets.
+
+Do not power the board through its micro-USB connector. The connector is rated for less than 2 A, and its contact resistance causes voltage drops during current peaks. In this setup, the 5 V output of a PoE splitter goes through two 3300 µF low-ESR capacitors and an XT60 connector to 14 AWG wires that are soldered directly to the board's power pads.
 
 ## How to install
 
@@ -85,4 +87,5 @@ Send an SMS in **sim-shell**:
     send <number> <message>
 
 ![NanoPi Duo2 with the IoT-2G SIM800C dock](nanopi_iot.jpg)
-![Power supply board](nanopi_iot_power.jpg)
+![Power wires soldered to the board](nanopi_iot_wiring.jpg)
+![PoE power supply board](nanopi_iot_power.jpg)

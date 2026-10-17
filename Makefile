@@ -6,7 +6,7 @@ sim-terminal: sim-terminal.cc simcom.cc simcom.h
 install:
 	strip sim-terminal
 	cp sim-terminal /usr/local/sbin
-	cp sim-shell /usr/local/bin
+	cp sim-shell sim-messages sim-calls /usr/local/bin
 	cp sim-terminal.service /etc/systemd/system
 	systemctl daemon-reload
 	systemctl enable sim-terminal

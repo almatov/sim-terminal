@@ -23,6 +23,10 @@ Use the **sim-shell** console script to connect to the terminal. You can type ei
 - **balance**: requests the phone balance with the USSD code `*111#`. If your operator uses a different code, change `USSD_BALANCE_` in `sim-terminal.cc` and rebuild the program (see below).
 - **send**: sends an SMS message.
 
+Use the **sim-messages** script to print only the text of incoming SMS messages as they arrive. Extra arguments are passed to `journalctl`, for example `sim-messages --since today`.
+
+Use the **sim-calls** script to print the time and number of the last incoming calls, 20 by default. You can give another number, for example `sim-calls 50`.
+
 ## Power supply
 
 The SIM800 draws current peaks of up to 2 A during GSM transmission. If the supply voltage drops below about 3.4 V, the module resets itself and loses its settings. Use a power supply that can deliver at least 2 A and add large electrolytic capacitors (1000 µF or more) close to the module's power input. You can find **UNDER-VOLTAGE** or **RDY** messages in the journal if the module resets.
@@ -62,13 +66,13 @@ By default, the module uses autobauding (`+IPR: 0`). In this mode, after a reset
 
 ## Tips
 
-Run this command on your computer when you are waiting for a 2FA SMS:
+Run this command on your computer when you are waiting for a 2FA SMS. It prints only the text of incoming SMS messages:
 
-    ssh <sim-host> 'journalctl -o short-iso -fu sim-terminal'
+    ssh <sim-host> sim-messages
 
-Show incoming calls:
+Show the last 20 incoming calls:
 
-    ssh <sim-host> 'journalctl -o short-iso -u sim-terminal' | grep "+CLIP"
+    ssh <sim-host> sim-calls
 
 A call that arrives while an SMS is being received is rejected by the network with a busy signal and does not appear in the log.
 

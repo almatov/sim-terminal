@@ -156,7 +156,7 @@ main( int argc, char* argv[] )
             else if ( line.rfind("+CMTI:", 0) == 0 )
             {
                 int     index = stoi( line.substr(line.rfind(',') + 1) );
-                string  command = "AT+CMGR=" + to_string( index );         // print the new SMS
+                string  command = "AT+CMGR=" + to_string( index );          // print the new SMS
 
                 if ( index >= SMS_LIMIT_ )
                 {

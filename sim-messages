@@ -1,0 +1,30 @@
+#!/bin/sh
+#
+# sim-messages
+#
+# Print the text of incoming SMS messages as they arrive
+#
+# The text is printed between the +CMGR: or +CMGL: header and the final OK. An OK line is held back: if the next
+# line is OK or a +CMGL: header too, the held line was the message text; otherwise it was the final OK.
+#
+# Copyright (C) 2026 Askar Almatov
+#
+# This program is free software: you can redistribute it and/or modify it under the terms of the GNU General
+# Public License as published by the Free Software Foundation, either version 3 of the License, or (at your
+# option) any later version.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
+# implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public
+# License for more details.
+#
+# You should have received a copy of the GNU General Public License along with this program.  If not, see
+# <https://www.gnu.org/licenses/>.
+#
+
+journalctl -o short-iso -fu sim-terminal "$@" | awk '
+/]: [+]CMG[RL]:/    { if ( held != "" ) { print held; fflush() } held = ""; inside = 1; next }
+!inside             { next }
+/]: OK$/            { if ( held != "" ) { print held; fflush() } held = $0; next }
+held != ""          { inside = 0; held = ""; next }
+                    { print; fflush() }
+'

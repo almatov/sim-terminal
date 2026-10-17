@@ -30,13 +30,14 @@
 
 using namespace std;
 
-constexpr const char*       USSD_BALANCE        = "*111#";
-constexpr const char*       UART_DEVICE_        = "/dev/ttyS3";
-constexpr const char*       GPIO_DEVICE_        = "/dev/gpiochip0";
+constexpr const char*       USSD_BALANCE_       = "*111#";                      // operator's balance request code
+constexpr const char*       UART_DEVICE_        = "/dev/ttyS3";                 // UART connected to the SIM module
+constexpr const char*       GPIO_DEVICE_        = "/dev/gpiochip0";             // GPIO chip with the PWRKEY line
 constexpr const int         GPIO_PWRKEY_LINE_   = 203;                          // PG11 of the NanoPi Duo2
 constexpr const auto        GPIO_PWRKEY_VALUE_  = GPIOD_LINE_VALUE_INACTIVE;    // inverted PWRKEY control
-constexpr const char*       SERVER_IP_          = "127.0.0.1";
-constexpr const unsigned    SERVER_PORT_        = 51173;
+constexpr const char*       SERVER_IP_          = "127.0.0.1";                  // local clients only, such as sim-shell
+constexpr const unsigned    SERVER_PORT_        = 51173;                        // must match the sim-shell script
+constexpr const int         SMS_LIMIT_          = 20;                           // of 25 SIM storage slots
 
 /**************************************************************************************************************/
 void
@@ -94,13 +95,13 @@ tryConvertPdu( string& line )
 void
 initModem( Simcom& sim )
 {
-    sim.uartWrite( "AT+CMGF=1\n" );         // set text mode
-    usleep( 50000 );
-    sim.uartWrite( "AT+CNMI=2,2,0,0,0\n" ); // set to print incoming SMS immediately
-    sleep( 5 );
-    sim.uartWrite( "AT+CMGL=\"ALL\"\n" );   // print all stored SMS
-    usleep( 50000 );
-    sim.uartWrite( "AT+CMGD=1,4\n" );       // empty SMS storage
+    sim.uartWrite
+    (
+        "AT+CMGF=1"                                 // set text mode
+        ";+CNMI=2,1,0,0,0"                          // store incoming SMS and report +CMTI
+        ";+CMGL=\"REC UNREAD\""                     // print unread SMS
+        ";+CMGD=1,1\n"                              // delete read SMS
+    );
 }
 
 /**************************************************************************************************************/
@@ -152,6 +153,18 @@ main( int argc, char* argv[] )
             {
                 initModem( sim );                   // module has started and has default settings
             }
+            else if ( line.rfind("+CMTI:", 0) == 0 )
+            {
+                int     index = stoi( line.substr(line.rfind(',') + 1) );
+                string  command = "AT+CMGR=" + to_string( index );         // print the new SMS
+
+                if ( index >= SMS_LIMIT_ )
+                {
+                    command += ";+CMGD=1,1";                                // delete read SMS
+                }
+
+                sim.uartWrite( command + '\n' );
+            }
 
             if ( line.rfind("+CUSD:", 0) == 0 || !(line.rfind("AT", 0) == 0 || line.rfind("+C", 0) == 0) )
             {
@@ -196,7 +209,7 @@ main( int argc, char* argv[] )
 
             if ( clientCommand == "balance" )
             {
-                simCommand = "AT+CUSD=1,\""s + USSD_BALANCE + "\"\n";
+                simCommand = "AT+CUSD=1,\""s + USSD_BALANCE_ + "\"\n";
             }
             else if ( clientCommand.rfind("send ", 0) == 0 )
             {

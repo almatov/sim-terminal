@@ -4,7 +4,7 @@ A terminal program written in C++ for using a SIM module with Linux. The program
 
 Incoming calls are hung up as soon as the **RING** event arrives. This protects against phone scammers who use social engineering, so it is safe to use a SIM card that is linked to a bank account or to other services with 2FA.
 
-The **+CMT** event prints a received SMS message.
+When the **+CMTI** event arrives, the program reads and prints the received SMS message. The message stays in the SIM storage, and read messages are deleted when the storage is nearly full.
 
 The **+CUSD** event prints a USSD message.
 
@@ -20,7 +20,7 @@ Use the **sim-shell** console script to connect to the terminal. You can type ei
 
 - **kill**: stops the service.
 - **quit**: disconnects the client.
-- **balance**: requests the phone balance with the USSD code `*111#`. If your operator uses a different code, change `USSD_BALANCE` in `sim-terminal.cc` and rebuild the program (see below).
+- **balance**: requests the phone balance with the USSD code `*111#`. If your operator uses a different code, change `USSD_BALANCE_` in `sim-terminal.cc` and rebuild the program (see below).
 - **send**: sends an SMS message.
 
 ## Power supply
@@ -45,7 +45,7 @@ Run the following commands:
 
 To use a different USSD code for **balance**, set it in `sim-terminal.cc`, for example:
 
-    constexpr const char*       USSD_BALANCE        = "*102#";
+    constexpr const char*       USSD_BALANCE_       = "*102#";
 
 Then rebuild and restart the service:
 

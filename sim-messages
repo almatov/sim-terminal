@@ -21,7 +21,14 @@
 # <https://www.gnu.org/licenses/>.
 #
 
-journalctl -o short-iso -fu sim-terminal "$@" | awk '
+AWK=awk
+
+if awk -W version </dev/null 2>&1 | grep -q mawk
+then
+    AWK="awk -W interactive"   # mawk reads its input in blocks unless it is interactive
+fi
+
+journalctl -o short-iso -fu sim-terminal "$@" | $AWK '
 /]: [+]CMG[RL]:/    { if ( held != "" ) { print held; fflush() } held = ""; inside = 1; next }
 !inside             { next }
 /]: OK$/            { if ( held != "" ) { print held; fflush() } held = $0; next }
